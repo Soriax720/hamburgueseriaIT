@@ -1,4 +1,11 @@
 import time
+import os
+from database import GestionBaseDatos
+
+db = GestionBaseDatos()
+
+def limpiar_pantalla():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def tomar_pedido():
    cliente = input("Ingrese nombre del cliente: ")
@@ -25,22 +32,15 @@ def tomar_pedido():
    
    confirmacion = input("¿Confirma peido? Y/N: ")
    if confirmacion == "Y" or confirmacion == "y":
-       with open("ventas.txt", "a") as f:
-        fecha_actual = time.ctime()
-        linea_venta = f"{cliente};{fecha_actual};{cant_s};{cant_d};{cant_t};{cant_p};{total}\n"
-        f.write(linea_venta)
-        return total
+       fecha_venta = time.ctime()
+       db.insertar_venta(cliente, fecha_venta, cant_s, cant_d, cant_t, cant_p, total)
+       return total
    else:
       return 0
 
 def registrar_evento(tipo, nombre_enc, monto = 0):
     fecha_act = time.ctime()
-    if tipo == "IN":
-      registro = f"IN {fecha_act} Encargad@ {nombre_enc}\n"
-    elif tipo == "OUT":
-      registro = f"OUT {fecha_act} Encargad@ {nombre_enc} ${monto}\n"+ ("#"*50) + "\n"
-    with open("registro.txt", "a") as f:
-       f.write(registro)
+    db.insertar_registro(nombre_enc, fecha_act, tipo, monto)
 
 def leer_entero(mensaje):
    while True:
@@ -71,14 +71,17 @@ while True:
     opcion = leer_entero("Elija una opcion: ")
 
     if opcion == 1:
+         limpiar_pantalla()
          resultado_venta = tomar_pedido()
          monto_acumulado += resultado_venta
     elif opcion == 2:
+      limpiar_pantalla()
       registrar_evento("OUT", encargado, monto_acumulado)
       monto_acumulado = 0   
       encargado = input("Ingrese su nombre encargado: ")
       registrar_evento("IN", encargado, monto_acumulado)   
     elif opcion == 3:
+         limpiar_pantalla()
          registrar_evento("OUT", encargado, monto_acumulado)
          print("Apagando sistema...")
          break
